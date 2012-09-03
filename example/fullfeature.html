@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+<script src="http://code.jquery.com/jquery-latest.js"></script>
+<script type="text/javascript" src="../lib/sketch.js"></script>
+
+<style>
+canvas {
+width: 800px;
+height: 300px;
+border: 1px solid #ccc;
+}
+
+#wrapper { width: 800px; margin: 0 auto; }
+
+.tools { margin-bottom: 10px; }
+.tools a {
+border: 1px solid black; height: 30px; line-height: 30px; padding: 0 10px; vertical-align: middle; text-align: center; text-decoration: none; display: inline-block; color: black; font-weight: bold;
+}
+</style>
+
+</head>
+<body>
+
+<div class='demo' id='colors_demo'>
+<div class="tools">
+<a href='#colors_sketch' data-download='png' style='float: right; width: 100px;'>Download</a>
+<a href="#colors_sketch" data-tool="marker">Marker</a>
+<a href="#colors_sketch" data-tool="eraser">Eraser</a>
+</div>
+
+<canvas id="colors_sketch" width="800" height="300" style="background-color: #fcfff0";></canvas>
+
+<script type="text/javascript">
+$(function() {
+        $.each(['#f50', '#0f0', '#0ff', '#00f', '#f0f', '#000', '#fff'], function() {
+            $('#colors_demo .tools').append("<a href='#colors_sketch' data-color='" + this + "' style='width: 10px; background: " + this + ";'></a> ");
+            });
+        $.each([3, 5, 10, 15], function() {
+            $('#colors_demo .tools').append("<a href='#colors_sketch' data-size='" + this + "' style='background: #ccc'>" + this + "</a> ");
+            });
+        $('#colors_sketch').sketch();
+        });
+</script>
+</div>
+
+</body>
+</html>
