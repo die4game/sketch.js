@@ -67,6 +67,7 @@
       @tool = @options.defaultTool
       @actions = []
       @action = []
+      @undone = []
 
       @canvas.bind 'click mousedown mouseup mousemove mouseleave mouseout touchstart touchmove touchend touchcancel', @onEvent
 
@@ -92,6 +93,8 @@
               sketch.set key, $(this).attr("data-#{key}")
           if $(this).attr('data-download')
             sketch.download $(this).attr('data-download')
+          if $(this).attr('data-undo')
+            sketch.undo $(this).attr('data-undo')
           false
 
     # ### sketch.download(format)
@@ -104,6 +107,18 @@
       mime = "image/#{format}"
 
       window.open @el.toDataURL(mime)
+      
+    # ### sketch.undo(mode)
+    #
+    # mode="undo" Pop one action off the actions array and put it in undone array
+    # mode="redo" Put undone action back into actions
+    undo: (mode)->
+      if mode is "undo" and @actions
+        @undone.push @actions.pop()
+      else if mode is "redo" and @undone
+        @actions.push @undone.pop()
+        
+      @redraw()
 
     # ### sketch.set(key, value)
     #
@@ -220,4 +235,7 @@
       action.color = "rgba(0,0,0,0)"
       $.sketch.tools.marker.draw.call this, action
       @context.globalCompositeOperation = oldcomposite
+      
+      
+      
 )(jQuery)
