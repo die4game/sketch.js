@@ -70,6 +70,7 @@
       @actions = []
       @action = []
       @undone = []
+      @point = []
 
       @canvas.bind 'click mousedown mouseup mousemove mouseleave mouseout touchstart touchmove touchend touchcancel', @onEvent
 
@@ -139,6 +140,8 @@
       @canvas.trigger("sketch.change#{key}", value)
       if key is "color"
         @set "tool", "marker"
+      if key is "tool" and value is "line"
+        @point = null
 
     # ### sketch.startPainting()
     #
@@ -161,6 +164,18 @@
       @painting = false
       @action = null
       @redraw()
+      
+    # ### sketch.newAction()
+    #
+    # *Internal method.* Called when a mouse or touch event is triggered 
+    # that begins a paint stroke. 
+    newAction: ->
+      @action = {
+        tool: @tool
+        color: @color
+        size: parseFloat(@size)
+        events: []
+      }
     
     # ### sketch.onEvent(e)
     #
@@ -246,6 +261,45 @@
       action.color = @background
       action.size = 10
       $.sketch.tools.marker.draw.call this, action
+      
+      
+  # ## line tool
+  #
+  # Draw a continuous line between mouseclicks
+  # Click on the name of the tool to reset (do that in the set function)
+  $.sketch.tools.line =
+    onEvent: (e)->
+      switch e.type
+        when 'mousedown', 'touchstart'
+          
+          newPoint = 
+            x: e.pageX - @canvas.offset().left
+            y: e.pageY - @canvas.offset().top
+            event: e.type
+         
+          if @point
+            @newAction()
+            @action.events.push @point 
+            @action.events.push newPoint
+            @actions.push @action
+            
+          @point = newPoint 
+          
+          @redraw()
+          
+    draw: (action)->
+      @context.lineJoin = "round"
+      @context.lineCap = "round"
+      @context.beginPath()
+      
+      @context.moveTo action.events[0].x, action.events[0].y
+      for event in action.events
+        @context.lineTo event.x, event.y
+
+        previous = event
+      @context.strokeStyle = action.color
+      @context.lineWidth = action.size
+      @context.stroke()
       
       
       
