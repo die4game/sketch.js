@@ -60,11 +60,13 @@
         defaultTool: 'marker'
         defaultColor: '#000000'
         defaultSize: 5
+        backgroundColor: '#ffffff'
       }, opts
       @painting = false
       @color = @options.defaultColor
       @size = @options.defaultSize
       @tool = @options.defaultTool
+      @background = @options.backgroundColor
       @actions = []
       @action = []
       @undone = []
@@ -93,9 +95,11 @@
               sketch.set key, $(this).attr("data-#{key}")
           if $(this).attr('data-download')
             sketch.download $(this).attr('data-download')
-          if $(this).attr('data-undo')
-            sketch.undo $(this).attr('data-undo')
+          if $(this).attr('data-operation')
+            sketch.operation $(this).attr('data-operation')
           false
+      
+      @redraw()
 
     # ### sketch.download(format)
     #
@@ -108,15 +112,20 @@
 
       window.open @el.toDataURL(mime)
       
-    # ### sketch.undo(mode)
+    # ### sketch.operation(mode)
     #
     # mode="undo" Pop one action off the actions array and put it in undone array
     # mode="redo" Put undone action back into actions
-    undo: (mode)->
+    # mode="clear" Clear the whole thing by emptying actions
+    # slight problem where empty actions can still get pushed/popped
+    operation: (mode)->
       if mode is "undo" and @actions
         @undone.push @actions.pop()
       else if mode is "redo" and @undone
         @actions.push @undone.pop()
+      else if mode is "clear"
+        @undone = []
+        @actions = []
         
       @redraw()
 
@@ -128,6 +137,8 @@
     set: (key, value)->
       this[key] = value
       @canvas.trigger("sketch.change#{key}", value)
+      if key is "color"
+        @set "tool", "marker"
 
     # ### sketch.startPainting()
     #
@@ -172,6 +183,8 @@
     redraw: ->
       @el.width = @canvas.width()
       @context = @el.getContext '2d'
+      @context.fillStyle = @background
+      @context.fillRect(0,0,@canvas.width(), @canvas.height())
       sketch = this
       $.each @actions, ->
         if this.tool
@@ -230,11 +243,9 @@
     onEvent: (e)->
       $.sketch.tools.marker.onEvent.call this, e
     draw: (action)->
-      oldcomposite = @context.globalCompositeOperation
-      @context.globalCompositeOperation = "copy"
-      action.color = "rgba(0,0,0,0)"
+      action.color = @background
+      action.size = 10
       $.sketch.tools.marker.draw.call this, action
-      @context.globalCompositeOperation = oldcomposite
       
       
       

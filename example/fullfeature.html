@@ -28,11 +28,12 @@ border: 1px solid black; height: 30px; line-height: 30px; padding: 0 10px; verti
 <a href='#colors_sketch' data-download='png' style='float: right; width: 100px;'>Download</a>
 <a href="#colors_sketch" data-tool="marker">Marker</a>
 <a href="#colors_sketch" data-tool="eraser">Eraser</a>
-<a href="#colors_sketch" data-undo="undo">Undo</a>
-<a href="#colors_sketch" data-undo="redo">Redo</a>
+<a href="#colors_sketch" data-operation="undo">Undo</a>
+<a href="#colors_sketch" data-operation="redo">Redo</a>
+<a href="#colors_sketch" data-operation="clear">Clear</a>
 </div>
 
-<canvas id="colors_sketch" width="800" height="300" style="background-color: #fcfff0";></canvas>
+<canvas id="colors_sketch" width="800" height="300"></canvas>
 
 <script type="text/javascript">
 $(function() {
@@ -42,7 +43,7 @@ $(function() {
         $.each([3, 5, 10, 15], function() {
             $('#colors_demo .tools').append("<a href='#colors_sketch' data-size='" + this + "' style='background: #ccc'>" + this + "</a> ");
             });
-        $('#colors_sketch').sketch();
+        $('#colors_sketch').sketch({backgroundColor: "#ffffe0"});
         });
 </script>
 </div>
