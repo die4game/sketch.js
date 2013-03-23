@@ -67,6 +67,8 @@
       @tool = @options.defaultTool
       @actions = []
       @action = []
+      @undone = []
+      @point = []
 
       @canvas.bind 'click mousedown mouseup mousemove mouseleave mouseout touchstart touchmove touchend touchcancel', @onEvent
 
@@ -92,6 +94,8 @@
               sketch.set key, $(this).attr("data-#{key}")
           if $(this).attr('data-download')
             sketch.download $(this).attr('data-download')
+          if $(this).attr('data-operation')
+            sketch.operation $(this).attr('data-operation')
           false
 
     # ### sketch.download(format)
@@ -104,6 +108,23 @@
       mime = "image/#{format}"
 
       window.open @el.toDataURL(mime)
+      
+    # ### sketch.operation(mode)
+    #
+    # mode="undo" Pop one action off the actions array and put it in undone array
+    # mode="redo" Put undone action back into actions
+    # mode="clear" Clear the whole thing by emptying actions
+    # slight problem where empty actions can still get pushed/popped
+    operation: (mode)->
+      if mode is "undo" and @actions
+        @undone.push @actions.pop()
+      else if mode is "redo" and @undone
+        @actions.push @undone.pop()
+      else if mode is "clear"
+        @undone = []
+        @actions = []
+        
+      @redraw()
 
     # ### sketch.set(key, value)
     #
@@ -113,6 +134,10 @@
     set: (key, value)->
       this[key] = value
       @canvas.trigger("sketch.change#{key}", value)
+      if key is "color"
+        @set "tool", "marker"
+      if key is "tool" and value is "line"
+        @point = null
 
     # ### sketch.startPainting()
     #
@@ -135,6 +160,18 @@
       @painting = false
       @action = null
       @redraw()
+      
+    # ### sketch.newAction()
+    #
+    # *Internal method.* Called when a mouse or touch event is triggered 
+    # that begins a paint stroke. 
+    newAction: ->
+      @action = {
+        tool: @tool
+        color: @color
+        size: parseFloat(@size)
+        events: []
+      }
     
     # ### sketch.onEvent(e)
     #
@@ -220,4 +257,45 @@
       action.color = "rgba(0,0,0,1)"
       $.sketch.tools.marker.draw.call this, action
       @context.globalCompositeOperation = oldcomposite
+
+      
+  # ## line tool
+  #
+  # Draw a continuous line between mouseclicks
+  # Click on the name of the tool to reset (do that in the set function)
+  $.sketch.tools.line =
+    onEvent: (e)->
+      switch e.type
+        when 'mousedown', 'touchstart'
+          
+          newPoint = 
+            x: e.pageX - @canvas.offset().left
+            y: e.pageY - @canvas.offset().top
+            event: e.type
+         
+          if @point
+            @newAction()
+            @action.events.push @point 
+            @action.events.push newPoint
+            @actions.push @action
+            
+          @point = newPoint 
+          
+          @redraw()
+          
+    draw: (action)->
+      @context.lineJoin = "round"
+      @context.lineCap = "round"
+      @context.beginPath()
+      
+      @context.moveTo action.events[0].x, action.events[0].y
+      for event in action.events
+        @context.lineTo event.x, event.y
+
+        previous = event
+      @context.strokeStyle = action.color
+      @context.lineWidth = action.size
+      @context.stroke()
+      
+      
 )(jQuery)

@@ -7,9 +7,8 @@
 
 <style>
 canvas {
-width: 800px;
-height: 300px;
 border: 1px solid #ccc;
+background-color: #ffffef;
 }
 
 #wrapper { width: 800px; margin: 0 auto; }
@@ -44,7 +43,7 @@ $(function() {
         $.each([3, 5, 10, 15], function() {
             $('#colors_demo .tools').append("<a href='#colors_sketch' data-size='" + this + "' style='background: #ccc'>" + this + "</a> ");
             });
-        $('#colors_sketch').sketch({backgroundColor: "#ffffe0"});
+        $('#colors_sketch').sketch();
         });
 </script>
 </div>
